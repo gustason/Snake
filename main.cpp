@@ -32,7 +32,8 @@ int main() {
 		bool isDead = false;
 		//eDirection nSnakeDirection = WEST;
 		int snakeDirection = 3;
-		bool keyRight = false, keyLeft = false, keyRightOld = false, keyLeftOld = false;
+		bool keyRight = false, keyLeft = false, keyUp = false, keyRightOld = false,
+			keyLeftOld = false, keyUpOld = false, keyDown = false, keyDownOld = false;
 		while (!isDead) {
 			// Timing & Input
 			//this::sleep_for(200ms);
@@ -44,8 +45,14 @@ int main() {
 				/// TO DO: Add all arrows.
 				keyRight = (0x8000 & GetAsyncKeyState((unsigned char)('\x27'))) != 0;
 				keyLeft = (0x8000 & GetAsyncKeyState((unsigned char)('\x25'))) != 0;
+				keyUp = (0x8000 & GetAsyncKeyState((unsigned char)('\x26'))) != 0;
+				keyDown = (0x8000 & GetAsyncKeyState((unsigned char)('\x28'))) != 0;
 
 				if (keyRight && !keyRightOld) {
+					switch (snakeDirection) {
+					case 0:
+
+					}
 					snakeDirection++;
 					if (snakeDirection == 4) snakeDirection = 0;
 				}
@@ -53,9 +60,14 @@ int main() {
 					snakeDirection--;
 					if (snakeDirection == -1) snakeDirection = 3;
 				}
+				if (keyUp && !keyUpOld) {
+					//
+				}
 
 				keyRightOld = keyRight;
 				keyLeftOld = keyLeft;
+				keyUpOld = keyUp;
+				keyDownOld = keyDown;
 			}
 
 			// Game Logic
@@ -99,7 +111,8 @@ int main() {
 			}
 
 			wsprintf(&screen[nScreenWidth + 5], L"S N A K E");
-			wsprintf(&screen[nScreenWidth + 50], L"SCORE: %d", score);
+			//wsprintf(&screen[nScreenWidth + 50], L"SCORE: %d", score);
+			wsprintf(&screen[nScreenWidth + 50], L"keyDown: %d", keyDown);
 			//wsprintf(&screen[nScreenWidth + 50], L"foodX: %d", foodX);
 			//wsprintf(&screen[nScreenWidth + 70], L"foodY: %d", foodY);
 
