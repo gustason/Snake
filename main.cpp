@@ -37,6 +37,7 @@ int main() {
 		this_thread::sleep_for(200ms);
 
 		// Get Keyboard Input
+        /// TO DO: Add all arrows.
 		keyRight = (0x8000 & GetAsyncKeyState((unsigned char)('\x27'))) != 0;
 		keyLeft = (0x8000 & GetAsyncKeyState((unsigned char)('\x25'))) != 0;
 
