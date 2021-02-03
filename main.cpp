@@ -42,26 +42,32 @@ int main() {
 			// Adjust game delay based on player direction
 			auto t1 = chrono::system_clock::now();
 			while ((chrono::system_clock::now() - t1) < ((snakeDirection % 2) ? 120ms : 200ms)) {
-				/// TO DO: Add all arrows.
+				/// TO DO: Add WASD support.
+				/// Make the player be able to choose between right and left and this layout.
 				keyRight = (0x8000 & GetAsyncKeyState((unsigned char)('\x27'))) != 0;
 				keyLeft = (0x8000 & GetAsyncKeyState((unsigned char)('\x25'))) != 0;
 				keyUp = (0x8000 & GetAsyncKeyState((unsigned char)('\x26'))) != 0;
 				keyDown = (0x8000 & GetAsyncKeyState((unsigned char)('\x28'))) != 0;
 
 				if (keyRight && !keyRightOld) {
-					switch (snakeDirection) {
-					case 0:
-
+					if (snakeDirection == 0 || snakeDirection == 2) {
+						snakeDirection = 1;
 					}
-					snakeDirection++;
-					if (snakeDirection == 4) snakeDirection = 0;
 				}
 				if (keyLeft && !keyLeftOld) {
-					snakeDirection--;
-					if (snakeDirection == -1) snakeDirection = 3;
+					if (snakeDirection == 0 || snakeDirection == 2) {
+						snakeDirection = 3;
+					}
 				}
 				if (keyUp && !keyUpOld) {
-					//
+					if (snakeDirection == 1 || snakeDirection == 3) {
+						snakeDirection = 0;
+					}
+				}
+				if (keyDown && !keyDownOld) {
+					if (snakeDirection == 1 || snakeDirection == 3) {
+						snakeDirection = 2;
+					}
 				}
 
 				keyRightOld = keyRight;
@@ -112,7 +118,8 @@ int main() {
 
 			wsprintf(&screen[nScreenWidth + 5], L"S N A K E");
 			//wsprintf(&screen[nScreenWidth + 50], L"SCORE: %d", score);
-			wsprintf(&screen[nScreenWidth + 50], L"keyDown: %d", keyDown);
+			wsprintf(&screen[nScreenWidth + 50], L"keyUp: %d", keyUp);
+			wsprintf(&screen[nScreenWidth + 70], L"snakeDirection: %d", snakeDirection);
 			//wsprintf(&screen[nScreenWidth + 50], L"foodX: %d", foodX);
 			//wsprintf(&screen[nScreenWidth + 70], L"foodY: %d", foodY);
 
