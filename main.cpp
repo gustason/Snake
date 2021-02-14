@@ -15,9 +15,11 @@ struct sSnakeSegment {
 enum eLayout {
 	CLASSIC = 0, MODERN
 };
+eLayout Layout = MODERN;
 
-const int dx[] = { 0, 1, 0, -1 };
-const int dy[] = { -1, 0, 1, 0 };
+const short dx[] = { 0, 1, 0, -1 };
+const short dy[] = { -1, 0, 1, 0 };
+const short snakeGrows[] = { 5, 10, 5 };
 int highScore = 0;
 short gameMode = 0;
 
@@ -27,7 +29,63 @@ int rand(int a, int b) {
 bool isKeyPressed(char button) {
 	return (0x8000 & GetAsyncKeyState((unsigned char)(button))) != 0;
 }
-eLayout Layout = MODERN;
+
+
+void reactToKeyPresses(bool &keyUpOld, bool &keyDownOld, bool &keyLeftOld, bool &keyRightOld, short &snakeDirection, chrono::milliseconds tHorizontal, chrono::milliseconds tVertical) {
+	bool keyUp = false, keyDown = false, keyLeft = false, keyRight = false;
+
+	auto t1 = chrono::system_clock::now();
+	// Adjust game delay based on player direction
+	while ((chrono::system_clock::now() - t1) < ((snakeDirection % 2) ? tHorizontal : tVertical)) {
+		keyRight = isKeyPressed('\x27');
+		keyRight |= isKeyPressed('\x44');
+		keyLeft = isKeyPressed('\x25');
+		keyLeft |= isKeyPressed('\x41');
+		keyUp = isKeyPressed('\x26');
+		keyUp |= isKeyPressed('\x57');
+		keyDown = isKeyPressed('\x28');
+		keyDown |= isKeyPressed('\x53');
+
+		if (Layout == MODERN) {
+			if (keyRight && !keyRightOld) {
+				if (snakeDirection == 0 || snakeDirection == 2) {
+					snakeDirection = 1;
+				}
+			}
+			if (keyLeft && !keyLeftOld) {
+				if (snakeDirection == 0 || snakeDirection == 2) {
+					snakeDirection = 3;
+				}
+			}
+			if (keyUp && !keyUpOld) {
+				if (snakeDirection == 1 || snakeDirection == 3) {
+					snakeDirection = 0;
+				}
+			}
+			if (keyDown && !keyDownOld) {
+				if (snakeDirection == 1 || snakeDirection == 3) {
+					snakeDirection = 2;
+				}
+			}
+		}
+		else if (Layout == CLASSIC) {
+			if (keyRight && !keyRightOld) {
+				snakeDirection++;
+				if (snakeDirection == 4) snakeDirection = 0;
+			}
+			if (keyLeft && !keyLeftOld) {
+				snakeDirection--;
+				if (snakeDirection == -1) snakeDirection = 3;
+			}
+		}
+
+
+		keyRightOld = keyRight;
+		keyLeftOld = keyLeft;
+		keyUpOld = keyUp;
+		keyDownOld = keyDown;
+	}
+}
 
 int main() {
 	srand(time(NULL));
@@ -45,8 +103,7 @@ int main() {
 		int score = 0;
 		bool isDead = false;
 		short snakeDirection = 3;
-		bool keyRight = false, keyLeft = false, keyUp = false, keyRightOld = false,
-			keyLeftOld = false, keyUpOld = false, keyDown = false, keyDownOld = false;
+		bool keyLeftOld = false, keyUpOld = false, keyDownOld = false, keyRightOld = false;
 
 		chrono::milliseconds tHorizontal, tVertical;
 		if (gameMode == 0 || gameMode == 2) { // NORMAL
@@ -63,60 +120,9 @@ int main() {
 			// Timing & Input
 			//this::sleep_for(200ms);
 
-			// Get Keyboard Input
-			// Adjust game delay based on player direction
-			auto t1 = chrono::system_clock::now();
+			// Get Keyboard Input and change direction accordingly
+			reactToKeyPresses(keyUpOld, keyDownOld, keyLeftOld, keyRightOld, snakeDirection, tHorizontal, tVertical);
 
-			while ((chrono::system_clock::now() - t1) < ((snakeDirection % 2) ? tHorizontal : tVertical)) {
-				/// TO DO: Add WASD support.
-				keyRight = isKeyPressed('\x27');
-				keyRight |= isKeyPressed('\x44');
-				keyLeft = isKeyPressed('\x25');
-				keyLeft |= isKeyPressed('\x41');
-				keyUp = isKeyPressed('\x26');
-				keyUp |= isKeyPressed('\x57');
-				keyDown = isKeyPressed('\x28');
-				keyDown |= isKeyPressed('\x53');
-
-				if (Layout == MODERN) {
-					if (keyRight && !keyRightOld) {
-						if (snakeDirection == 0 || snakeDirection == 2) {
-							snakeDirection = 1;
-						}
-					}
-					if (keyLeft && !keyLeftOld) {
-						if (snakeDirection == 0 || snakeDirection == 2) {
-							snakeDirection = 3;
-						}
-					}
-					if (keyUp && !keyUpOld) {
-						if (snakeDirection == 1 || snakeDirection == 3) {
-							snakeDirection = 0;
-						}
-					}
-					if (keyDown && !keyDownOld) {
-						if (snakeDirection == 1 || snakeDirection == 3) {
-							snakeDirection = 2;
-						}
-					}
-				}
-				else if (Layout == CLASSIC) {
-					if (keyRight && !keyRightOld) {
-						snakeDirection++;
-						if (snakeDirection == 4) snakeDirection = 0;
-					}
-					if (keyLeft && !keyLeftOld) {
-						snakeDirection--;
-						if (snakeDirection == -1) snakeDirection = 3;
-					}
-				}
-
-
-				keyRightOld = keyRight;
-				keyLeftOld = keyLeft;
-				keyUpOld = keyUp;
-				keyDownOld = keyDown;
-			}
 
 			// Game Logic
 			// Update Snake Position
@@ -135,11 +141,12 @@ int main() {
 				}
 				while (screen[foodY * nScreenWidth + foodX] != L' ')
 				{
+					// TODO: Change Food Spawning based on difficulty
 					foodX = rand() % nScreenWidth;
 					foodY = (rand() % (nScreenHeight - 3)) + 3;
 				}
 
-				for (int i = 0; i < 5; i++)
+				for (int i = 0; i < snakeGrows[gameMode]; i++)
 					snake.push_back({ snake.back().x, snake.back().y });
 			}
 			// Snake Against Itself
@@ -194,7 +201,6 @@ int main() {
 			// Display Frame
 			WriteConsoleOutputCharacter(hConsole, screen, nScreenWidth * nScreenHeight, { 0,0 }, &dwBytesWritten);
 		}
-
 		// Show Gamemode Selection Screen
 		if (gameMode == 0) wsprintf(&screen[19 * nScreenWidth + 40], L"     -NORMAL- GAMEMODE SELECTED    ");
 		else if (gameMode == 1) wsprintf(&screen[19 * nScreenWidth + 40], L"     --HARD-- GAMEMODE SELECTED    ");
