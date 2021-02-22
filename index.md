@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
 <body>
 <a href="Snake.exe">Download.</a>
